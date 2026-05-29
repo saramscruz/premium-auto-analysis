@@ -1,32 +1,31 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 import path from "path";
+import fs from "fs";
 
 const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), "data", "premium-auto.db");
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _sqlite: Database.Database | null = null;
+let _client: ReturnType<typeof createClient> | null = null;
 
 export function getDb() {
   if (!_db) {
-    const fs = require("fs");
     const dir = path.dirname(DB_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-    _sqlite = new Database(DB_PATH);
-    _sqlite.pragma("journal_mode = WAL");
-    _sqlite.pragma("foreign_keys = ON");
-    _db = drizzle(_sqlite, { schema });
+    _client = createClient({ url: `file:${DB_PATH}` });
+    _db = drizzle(_client, { schema });
 
-    runMigrations(_sqlite);
+    runMigrations();
   }
   return _db;
 }
 
-function runMigrations(sqlite: Database.Database) {
-  sqlite.exec(`
-    CREATE TABLE IF NOT EXISTS signals (
+async function runMigrationsAsync() {
+  if (!_client) return;
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS signals (
       id TEXT PRIMARY KEY,
       status TEXT NOT NULL DEFAULT 'pending',
       date_collected TEXT NOT NULL,
@@ -55,15 +54,13 @@ function runMigrations(sqlite: Database.Database) {
       ai_suggestion TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS ingested_uids (
+    )`,
+    `CREATE TABLE IF NOT EXISTS ingested_uids (
       uid TEXT PRIMARY KEY,
       source TEXT NOT NULL,
       ingested_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS user_config (
+    )`,
+    `CREATE TABLE IF NOT EXISTS user_config (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       google_sheets_id TEXT,
       email_alerts_address TEXT,
@@ -73,18 +70,16 @@ function runMigrations(sqlite: Database.Database) {
       imap_password TEXT,
       brands_to_monitor TEXT NOT NULL DEFAULT '["Mercedes-Benz","BMW","Audi","Volvo","Porsche"]',
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS health_checks (
+    )`,
+    `CREATE TABLE IF NOT EXISTS health_checks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
       status TEXT NOT NULL DEFAULT 'unknown',
       message TEXT NOT NULL DEFAULT '',
       last_checked TEXT NOT NULL DEFAULT (datetime('now')),
       metrics TEXT NOT NULL DEFAULT '{}'
-    );
-
-    CREATE TABLE IF NOT EXISTS scraper_cache (
+    )`,
+    `CREATE TABLE IF NOT EXISTS scraper_cache (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       brand TEXT NOT NULL,
       source_type TEXT NOT NULL,
@@ -92,9 +87,8 @@ function runMigrations(sqlite: Database.Database) {
       content_hash TEXT NOT NULL,
       content TEXT NOT NULL,
       scraped_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS analytics (
+    )`,
+    `CREATE TABLE IF NOT EXISTS analytics (
       id TEXT PRIMARY KEY,
       week INTEGER NOT NULL,
       signal_count INTEGER NOT NULL DEFAULT 0,
@@ -105,10 +99,16 @@ function runMigrations(sqlite: Database.Database) {
       duplicate_rate REAL NOT NULL DEFAULT 0,
       content_angle_suggestions TEXT NOT NULL DEFAULT '[]',
       generated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
+    )`,
+    `INSERT OR IGNORE INTO user_config (id) VALUES (1)`,
+  ];
+  for (const sql of statements) {
+    await _client.execute(sql);
+  }
+}
 
-    INSERT OR IGNORE INTO user_config (id) VALUES (1);
-  `);
+function runMigrations() {
+  runMigrationsAsync().catch(console.error);
 }
 
 export { schema };

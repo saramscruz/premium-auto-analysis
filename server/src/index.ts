@@ -31,10 +31,8 @@ app.use(
 
 app.use(express.json());
 
-const SQLiteStore = require("connect-sqlite3")(session);
 app.use(
   session({
-    store: new SQLiteStore({ db: "sessions.db", dir: "./data" }),
     secret: process.env.SESSION_SECRET || "dev-secret-change-me-in-production",
     resave: false,
     saveUninitialized: false,
