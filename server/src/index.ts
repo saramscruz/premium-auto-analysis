@@ -8,6 +8,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "./router";
 import type { Context } from "./trpc";
 import { runAllHealthChecks } from "./jobs/healthChecks";
+import { waitForMigrations } from "./db";
 
 declare module "express-session" {
   interface SessionData {
@@ -112,7 +113,7 @@ app.listen(PORT, async () => {
   console.log(`[Server] Running on http://localhost:${PORT}`);
   console.log(`[Server] Mock mode: ${process.env.USE_MOCK_INTEGRATIONS === "true"}`);
 
-  setTimeout(() => runAllHealthChecks().catch(console.error), 2000);
+  waitForMigrations().then(() => runAllHealthChecks().catch(console.error));
 });
 
 export type { AppRouter } from "./router";

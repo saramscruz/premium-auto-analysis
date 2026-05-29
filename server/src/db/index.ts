@@ -8,6 +8,7 @@ const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), "data", "premium
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _client: ReturnType<typeof createClient> | null = null;
+let _migrationPromise: Promise<void> | null = null;
 
 export function getDb() {
   if (!_db) {
@@ -17,9 +18,14 @@ export function getDb() {
     _client = createClient({ url: `file:${DB_PATH}` });
     _db = drizzle(_client, { schema });
 
-    runMigrations();
+    _migrationPromise = runMigrationsAsync().catch(console.error) as Promise<void>;
   }
   return _db;
+}
+
+export function waitForMigrations(): Promise<void> {
+  if (!_migrationPromise) getDb();
+  return _migrationPromise!;
 }
 
 async function runMigrationsAsync() {
@@ -105,10 +111,6 @@ async function runMigrationsAsync() {
   for (const sql of statements) {
     await _client.execute(sql);
   }
-}
-
-function runMigrations() {
-  runMigrationsAsync().catch(console.error);
 }
 
 export { schema };
