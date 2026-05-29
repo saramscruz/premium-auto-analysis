@@ -1,4 +1,4 @@
-import { getDb, schema } from "../db";
+import { getDb, schema, waitForMigrations } from "../db";
 import { eq } from "drizzle-orm";
 import { testSheetsConnection, mockTestSheetsConnection } from "../integrations/sheets";
 
@@ -186,6 +186,7 @@ export async function checkLastScraperRun(): Promise<void> {
 
 export async function runAllHealthChecks(): Promise<void> {
   console.log("[Health] Running all health checks...");
+  await waitForMigrations();
   await Promise.allSettled([
     checkImapConnectivity(),
     checkSheetsConnectivity(),
