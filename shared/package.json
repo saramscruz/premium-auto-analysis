@@ -1,0 +1,8 @@
+{
+  "name": "@premium-auto/shared",
+  "version": "1.0.0",
+  "main": "schemas.ts",
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
