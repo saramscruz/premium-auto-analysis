@@ -31,6 +31,8 @@ export function waitForMigrations(): Promise<void> {
 async function runMigrationsAsync() {
   if (!_client) return;
   const statements = [
+    `PRAGMA journal_mode=WAL`,
+    `PRAGMA busy_timeout=5000`,
     `CREATE TABLE IF NOT EXISTS signals (
       id TEXT PRIMARY KEY,
       status TEXT NOT NULL DEFAULT 'pending',

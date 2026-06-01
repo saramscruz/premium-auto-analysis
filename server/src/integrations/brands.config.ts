@@ -32,8 +32,8 @@ export const BRANDS: BrandConfig[] = [
   },
   {
     name: "Audi",
-    appPageUrl: "https://www.audi.com/en/experience-audi/digitalization-and-connectivity.html",
-    salesPageUrl: "https://www.audi.com/en/experience-audi/models-and-technology.html",
+    appPageUrl: "https://www.audi.com/en/experience-audi/models-and-technology/digital-services/myaudi.html",
+    salesPageUrl: "https://www.audi.com/en/innovation/digitalization/digital-products/digital-services/",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.audi.mobileservices",
     linkedInUrl: "https://www.linkedin.com/company/audi/",
     appStoreId: "com.audi.mobileservices",
@@ -42,8 +42,8 @@ export const BRANDS: BrandConfig[] = [
   },
   {
     name: "Volvo",
-    appPageUrl: "https://www.volvocars.com/intl/own/connectivity/volvo-cars-app",
-    salesPageUrl: "https://www.volvocars.com/intl/cars",
+    appPageUrl: "https://www.volvocars.com/us/international/why-volvo/human-innovation/future-of-driving/connectivity/",
+    salesPageUrl: "https://group.volvocars.com/company/innovation/android",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.volvo.cars",
     linkedInUrl: "https://www.linkedin.com/company/volvo-cars/",
     appStoreId: "com.volvo.cars",
