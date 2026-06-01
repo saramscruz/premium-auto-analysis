@@ -12,6 +12,8 @@ const CHECK_LABELS: Record<string, { label: string; description: string }> = {
 export default function Health() {
   const { data, isLoading, refetch } = trpc.health.status.useQuery(undefined, { refetchInterval: 60_000 });
   const runChecks = trpc.health.runChecks.useMutation({ onSuccess: () => refetch() });
+  const triggerImap = trpc.collect.triggerImap.useMutation();
+  const triggerScrape = trpc.collect.triggerScrape.useMutation();
 
   const overall = data?.overallStatus || "unknown";
   const overallLabel = { ok: "EXCELLENT", warn: "DEGRADED", error: "ISSUES DETECTED", unknown: "CHECKING..." }[overall];
@@ -23,13 +25,29 @@ export default function Health() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">System Health Dashboard</h1>
-        <button
-          onClick={() => runChecks.mutate()}
-          disabled={runChecks.isPending}
-          className="px-4 py-2 text-sm bg-brand-500 text-white rounded-lg hover:bg-brand-600 disabled:opacity-50"
-        >
-          {runChecks.isPending ? "Running..." : "Run Checks Now"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => triggerImap.mutate()}
+            disabled={triggerImap.isPending}
+            className="px-4 py-2 text-sm bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          >
+            {triggerImap.isPending ? "Fetching..." : triggerImap.isSuccess ? `✓ ${triggerImap.data?.ingested} new` : "Fetch Alerts Now"}
+          </button>
+          <button
+            onClick={() => triggerScrape.mutate()}
+            disabled={triggerScrape.isPending}
+            className="px-4 py-2 text-sm bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          >
+            {triggerScrape.isPending ? "Scraping..." : triggerScrape.isSuccess ? `✓ ${triggerScrape.data?.ingested} new` : "Scrape Brands Now"}
+          </button>
+          <button
+            onClick={() => runChecks.mutate()}
+            disabled={runChecks.isPending}
+            className="px-4 py-2 text-sm bg-brand-500 text-white rounded-lg hover:bg-brand-600 disabled:opacity-50"
+          >
+            {runChecks.isPending ? "Running..." : "Run Checks Now"}
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
