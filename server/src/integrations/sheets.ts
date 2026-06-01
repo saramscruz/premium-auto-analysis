@@ -23,6 +23,8 @@ export async function appendSignalToSheet(
     ? signal.ownership_narrative_elements.join(", ")
     : signal.ownership_narrative_elements;
 
+  const safeText = (s: string) => s.startsWith("=") || s.startsWith("+") || s.startsWith("-") || s.startsWith("@") ? "'" + s : s;
+
   const row = [
     signal.date_collected,
     signal.brand,
@@ -30,19 +32,24 @@ export async function appendSignalToSheet(
     signal.url,
     signal.date_source_published || "",
     signal.market || "Global",
-    signal.exact_excerpt,
-    signal.signal_summary || "",
+    safeText(signal.exact_excerpt),
+    safeText(signal.signal_summary || ""),
     signal.signal_type || "",
     elements,
-    signal.product_design_choice || "",
+    safeText(signal.product_design_choice || ""),
     signal.confidence_level || "",
-    signal.limitation || "",
+    safeText(signal.limitation || ""),
     signal.connected_to_alert || "",
     signal.possible_post_angle || "",
     signal.used_in_published_content || "",
     signal.notes || "",
     signal.is_duplicate ? "Yes" : "No",
   ];
+
+  const existing = await sheets.spreadsheets.values.get({ spreadsheetId: sheetsId, range: "Signal Log!A1" });
+  if (!existing.data.values) {
+    await initializeSheetHeaders(sheetsId);
+  }
 
   const response = await sheets.spreadsheets.values.append({
     spreadsheetId: sheetsId,
