@@ -37,7 +37,11 @@ export async function fetchGoogleAlerts(config: ImapConfig): Promise<IngestedSig
 
   try {
     await client.connect();
-    const lock = await client.getMailboxLock("INBOX");
+    const boxes = await client.list();
+    const alertsBox = boxes.find(b => b.path.toLowerCase().includes("google alerts"));
+    const mailboxPath = alertsBox?.path || "INBOX";
+    console.log(`[IMAP] Using mailbox: ${mailboxPath}`);
+    const lock = await client.getMailboxLock(mailboxPath);
 
     try {
       const messages = await client.search({ seen: false, from: "googlealerts-noreply@google.com" } as any);
