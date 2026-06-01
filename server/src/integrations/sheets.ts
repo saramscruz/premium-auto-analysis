@@ -100,7 +100,8 @@ export async function testSheetsConnection(sheetsId: string): Promise<boolean> {
     const sheets = google.sheets({ version: "v4", auth: await auth.getClient() as any });
     await sheets.spreadsheets.get({ spreadsheetId: sheetsId });
     return true;
-  } catch {
+  } catch (err) {
+    console.error("[Sheets] Connection test failed:", err instanceof Error ? err.message : String(err));
     return false;
   }
 }
