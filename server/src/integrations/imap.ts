@@ -1,5 +1,6 @@
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
+import { load as cheerioLoad } from "cheerio";
 import { getDb, schema } from "../db";
 import { eq, inArray } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
@@ -68,21 +69,33 @@ export async function fetchGoogleAlerts(config: ImapConfig): Promise<IngestedSig
           const subject = parsed.subject || "";
           const date = parsed.date ? parsed.date.toISOString().split("T")[0] : null;
 
-          const urls = extractUrls(html || text);
-          const brand = detectBrandFromText(subject + " " + text);
-          if (!brand) continue;
+          const articles = extractArticlesFromAlert(html || "", text, subject);
+          const emailBrand = detectBrandFromText(subject + " " + text);
 
-          const primaryUrl = urls[0] || "";
-          const excerpt = extractExcerptFromAlert(text, html);
+          for (const article of articles) {
+            const brand = detectBrandFromText(article.headline + " " + article.excerpt + " " + subject) || emailBrand;
+            if (!brand) continue;
+            newSignals.push({
+              brand,
+              source_type: "Alert",
+              url: article.url,
+              headline: article.headline || subject,
+              exact_excerpt: article.excerpt,
+              date_source_published: date,
+            });
+          }
 
-          newSignals.push({
-            brand,
-            source_type: "Alert",
-            url: primaryUrl,
-            headline: subject,
-            exact_excerpt: excerpt,
-            date_source_published: date,
-          });
+          if (articles.length === 0 && emailBrand) {
+            const primaryUrl = extractUrls(html || text)[0] || "";
+            newSignals.push({
+              brand: emailBrand,
+              source_type: "Alert",
+              url: primaryUrl,
+              headline: subject,
+              exact_excerpt: text.slice(0, 600),
+              date_source_published: date,
+            });
+          }
 
           await db.insert(schema.ingested_uids).values({
             uid: String(uid),
@@ -114,13 +127,60 @@ function extractUrls(content: string): string[] {
     .slice(0, 3);
 }
 
-function extractExcerptFromAlert(text: string, html: string): string {
-  const lines = text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 40 && !l.startsWith("http") && !l.includes("unsubscribe") && !l.includes("Google Alerts"));
+interface Article {
+  headline: string;
+  excerpt: string;
+  url: string;
+}
 
-  return lines.slice(0, 3).join(" ").slice(0, 800) || text.slice(0, 400);
+function extractArticlesFromAlert(html: string, text: string, subject: string): Article[] {
+  const articles: Article[] = [];
+
+  if (html) {
+    const $ = cheerioLoad(html);
+
+    // Google Alerts HTML structure: each article is an <a> with a title, followed by a snippet
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
+      // Google wraps links: https://www.google.com/url?q=ACTUAL_URL&...
+      const actualUrl = href.includes("google.com/url")
+        ? new URL(href).searchParams.get("q") || href
+        : href;
+
+      if (!actualUrl || actualUrl.includes("google.com") || actualUrl.includes("accounts.google")) return;
+
+      const headline = $(el).text().trim();
+      if (!headline || headline.length < 10) return;
+
+      // Snippet is usually in the next sibling element
+      const snippet = $(el).closest("tr, td, div").next().text().trim() ||
+                      $(el).parent().next().text().trim();
+
+      articles.push({
+        headline,
+        excerpt: snippet.slice(0, 600) || headline,
+        url: actualUrl,
+      });
+    });
+  }
+
+  // Fallback: parse plain text version
+  if (articles.length === 0) {
+    const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (line.startsWith("http") || line.length < 20) { i++; continue; }
+      if (line.includes("Google Alerts") || line.includes("unsubscribe") || line.startsWith("===")) { i++; continue; }
+
+      const url = lines.slice(i).find(l => l.startsWith("http") && !l.includes("google.com")) || "";
+      const excerpt = lines.slice(i + 1, i + 3).filter(l => !l.startsWith("http")).join(" ");
+      articles.push({ headline: line, excerpt: excerpt || line, url });
+      i += 3;
+    }
+  }
+
+  return articles.slice(0, 10);
 }
 
 export class MockImapClient {
