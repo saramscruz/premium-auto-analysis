@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --names \"server,client\" --prefix-colors \"blue,green\" \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+    "dev": "concurrently --names \"server,worker,client\" --prefix-colors \"blue,yellow,green\" \"npm run dev --prefix server\" \"npm run dev:worker --prefix server\" \"npm run dev --prefix client\""
   },
   "dependencies": {
     "zod": "^3.23.8"
