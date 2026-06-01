@@ -46,8 +46,10 @@ export async function appendSignalToSheet(
     signal.is_duplicate ? "Yes" : "No",
   ];
 
-  const existing = await sheets.spreadsheets.values.get({ spreadsheetId: sheetsId, range: "Signal Log!A1" });
-  if (!existing.data.values) {
+  try {
+    const existing = await sheets.spreadsheets.values.get({ spreadsheetId: sheetsId, range: "Signal Log!A1" });
+    if (!existing.data.values) await initializeSheetHeaders(sheetsId);
+  } catch {
     await initializeSheetHeaders(sheetsId);
   }
 
