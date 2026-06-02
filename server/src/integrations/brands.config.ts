@@ -42,8 +42,8 @@ export const BRANDS: BrandConfig[] = [
   },
   {
     name: "Volvo",
-    appPageUrl: "https://www.volvocars.com/us/international/why-volvo/human-innovation/future-of-driving/connectivity/",
-    salesPageUrl: "https://group.volvocars.com/company/innovation/android",
+    appPageUrl: "https://www.volvocars.com/intl/media/",
+    salesPageUrl: "https://www.volvocars.com/pt/",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.volvo.cars",
     linkedInUrl: "https://www.linkedin.com/company/volvo-cars/",
     appStoreId: "com.volvo.cars",
