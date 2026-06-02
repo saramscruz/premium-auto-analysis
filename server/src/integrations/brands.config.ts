@@ -32,8 +32,8 @@ export const BRANDS: BrandConfig[] = [
   },
   {
     name: "Audi",
-    appPageUrl: "https://www.audi.com/en/experience-audi/models-and-technology/digital-services/myaudi.html",
-    salesPageUrl: "https://www.audi.com/en/innovation/digitalization/digital-products/digital-services/",
+    appPageUrl: "https://www.audi-mediacenter.com/en",
+    salesPageUrl: "https://www.audi.com/en/",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.audi.mobileservices",
     linkedInUrl: "https://www.linkedin.com/company/audi/",
     appStoreId: "com.audi.mobileservices",
