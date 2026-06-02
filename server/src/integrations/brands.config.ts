@@ -22,8 +22,8 @@ export const BRANDS: BrandConfig[] = [
   },
   {
     name: "BMW",
-    appPageUrl: "https://www.bmw.com/en/topics/discover-bmw/connected-drive/mybmw-app.html",
-    salesPageUrl: "https://www.bmw.com/en/topics/discover-bmw/connected-drive.html",
+    appPageUrl: "https://www.press.bmwgroup.com/global",
+    salesPageUrl: "https://www.bmw.pt/pt/index.html",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.bmw.connected",
     linkedInUrl: "https://www.linkedin.com/company/bmw/",
     appStoreId: "com.bmw.connected",
