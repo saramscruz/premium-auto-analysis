@@ -12,8 +12,8 @@ export interface BrandConfig {
 export const BRANDS: BrandConfig[] = [
   {
     name: "Mercedes-Benz",
-    appPageUrl: "https://www.mercedes-benz.com/en/mercedes-me/",
-    salesPageUrl: "https://www.mercedes-benz.com/en/vehicles/",
+    appPageUrl: "https://media.mercedes-benz.com/",
+    salesPageUrl: "https://www.mercedes-benz.com/en/",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.daimler.mm",
     linkedInUrl: "https://www.linkedin.com/company/mercedes-benz/",
     appStoreId: "com.daimler.mm",
