@@ -52,8 +52,8 @@ export const BRANDS: BrandConfig[] = [
   },
   {
     name: "Porsche",
-    appPageUrl: "https://www.porsche.com/international/connect/",
-    salesPageUrl: "https://www.porsche.com/international/models/",
+    appPageUrl: "https://newsroom.porsche.com/en.html",
+    salesPageUrl: "https://www.porsche.com/international/",
     appStoreUrl: "https://play.google.com/store/apps/details?id=com.porsche.connect",
     linkedInUrl: "https://www.linkedin.com/company/porsche-ag/",
     appStoreId: "com.porsche.connect",
